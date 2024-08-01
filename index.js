@@ -69,7 +69,7 @@ window.addEventListener("DOMContentLoaded", () => {
             });
             console.log(musicLibary);
         } else {
-            console.log(`File ${file.name} is not an audio file. It is a ${file.type} file.`);
+            console.log(`File ${file.name} is not an audio file. It is a ${file.type.split('/').pop()} file.`);
         }
     }
     
@@ -86,7 +86,7 @@ async function makeFile(opfsRoot, fileName, fileType, content) {
                 try {
                     currentFolder = await currentFolder.getDirectoryHandle(filePart, { create: true });
                 } catch (error) {
-                    console.error("ERROR: Could not get dorectory handle. " + error);
+                    console.error("ERROR: Could not get directory handle. " + error);
                 }
             }
         } else {
