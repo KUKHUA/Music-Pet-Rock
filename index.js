@@ -12,48 +12,67 @@ window.addEventListener("DOMContentLoaded", () => {
             await handleFile(file);
         }
     });
-
+});
     async function handleFile(file) {
         let opfsRoot = await navigator.storage.getDirectory();
         let jsmediatags = window.jsmediatags;
-        let musicLibary = {};
-
-        if(localStorage['musicLibary'] == undefined) {
-            localStorage['musicLibary'] = {}
+        var musicLibary = {};
+    
+        if (localStorage.getItem('musicLibary') === null) {
+            localStorage.setItem('musicLibary', JSON.stringify({}));
         } else {
-            musicLibary = JSON.parse(localStorage['musicLibary']);
+            musicLibary = JSON.parse(localStorage.getItem('musicLibary'));
         }
-
+    
         if (file.type.startsWith("audio/")) {
+            let id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            let extension = file.name.split('.').pop();
+            let fileName = `${id}.${extension}`;
+            await makeFile(opfsRoot, fileName, file.type, file);
+            console.log(`File ${fileName} was successfully saved.`);
+            
             jsmediatags.read(file, {
                 onSuccess: function(tag) {
-                   // Make a unique id for the file
-                    let id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-                    //Get the file extension
-                    let extension = file.name.split('.').pop();
-                    let fileName = `${id}.${extension}`;
-                    makeFile(opfsRoot, fileName, file.type, file).then(() => {
-                        musicLibary[id] = {
-                            fileName: fileName,
-                            fileType: file.type,
-                            data: tag,
+                    let picture = tag.tags?.picture;
+                    if (picture) {
+                        let blob = new Blob([picture.data], { type: picture.format });
+                        let pictureFileName;
+    
+                        if (picture.format == "image/jpeg") {
+                            pictureFileName = `${id}.jpg`;
+                        } else if (picture.format == "image/png") {
+                            pictureFileName = `${id}.png`;
                         }
-                        console.log(`File ${fileName} was successfully saved.`);
-                        localStorage['musicLibary'] = JSON.stringify(musicLibary);
-                    }).catch((error) => {
-                        console.error(`ERROR: Could not save file ${file.name}. ${error}`);
-                    });
+    
+                        makeFile(opfsRoot, pictureFileName, picture.format, blob);
+                        tag.tags.picture.fileName = pictureFileName;
+                        tag.tags.picture.data = null;
+                    }
+    
+                    musicLibary[id] = {
+                        fileName: fileName,
+                        fileType: file.type,
+                        data: tag,
+                    };
                     console.log(tag);
+                    localStorage.setItem('musicLibary', JSON.stringify(musicLibary));
                 },
                 onError: function(error) {
-                  console.log(error);
+                    console.log(error);
+                    musicLibary[id] = {
+                        fileName: fileName,
+                        fileType: file.type,
+                        data: null,
+                    };
+                    localStorage.setItem('musicLibary', JSON.stringify(musicLibary));
                 }
-              });
+            });
+            console.log(musicLibary);
         } else {
             console.log(`File ${file.name} is not an audio file. It is a ${file.type} file.`);
         }
     }
-});
+    
 
 async function makeFile(opfsRoot, fileName, fileType, content) {
     let currentFolder;
