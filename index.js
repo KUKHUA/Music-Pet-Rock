@@ -50,6 +50,8 @@ window.addEventListener("DOMContentLoaded", () => {
                 onSuccess: function(tag) {
                     let picture = tag.tags?.picture;
                     if (picture) {
+                        // Decode the picture data as normal PNG data
+                        picture.data = new Uint8Array(picture.data);
                         let blob = new Blob([picture.data], { type: picture.format });
                         let pictureFileName;
     

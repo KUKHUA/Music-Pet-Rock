@@ -6,6 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title class="scroll">Rockin Pet Rock</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
   </head>
   <body>
   <script src="javascript/dependencies/jsmediatags.min.js"></script>
@@ -15,7 +16,11 @@
   <h2 id="nowplaying">Not Playing...</h2>
   <h3 id="song"></h3>
   <div class="rock">
-    <img class="rockimg" src="assets/rock.png" alt="Pet Rock" id="rock">
+    <img class="rockimg" src="assets/rock.png" alt="Pet Rock" id="rock" onclick="stopMusic();">
+  </div>
+  <div class="controls">
+    <button id="pause" onclick="pauseMusic();"><span class="material-symbols-outlined">pause_circle</span></button>
+    <p id="textLog"></p>
   </div>
   </body>
   <footer>

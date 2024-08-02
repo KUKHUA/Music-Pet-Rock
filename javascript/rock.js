@@ -4,11 +4,15 @@ var rockInterval;
 var audioObject;
 var stopPlease = false;
 var rockimg,nowplaying,song;
+var pasuedMusic = false;
+var userText;
+var textLog; 
 
 window.addEventListener("DOMContentLoaded", () => {
     rockimg = document.querySelector(".rockimg");
     nowplaying = document.getElementById("nowplaying");
     song = document.getElementById("song");
+    textLog = document.getElementById("textLog");
     if (rockimg) {
         rockimg.addEventListener("click", () => {
             if (stopPlease) {
@@ -65,15 +69,42 @@ function stopMusic() {
     updateQueue();
 }
 
+function pauseMusic() {
+    let pauseButton = document.getElementById("pause");
+    if(pasuedMusic){
+        pauseButton.innerHTML = '<span class="material-symbols-outlined">pause_circle</span>';
+        audioObject.play();
+        pasuedMusic = false;
+        textLog.innerHTML = `Paused music.`;
+        clearInterval(rockInterval);
+    } else {
+        pauseButton.innerHTML = '<span class="material-symbols-outlined">play_circle</span>';
+        audioObject.pause();
+        pasuedMusic = true;
+        textLog.innerHTML = `Resumed music.`;
+        startRotatingRock();
+    }
+}
+
 async function startMusic() {
     if (stopPlease) return;
     if (!queue.length) updateQueue();
     let opfsRoot = await navigator.storage.getDirectory();
+    if(!userText){
+        userText = prompt("Type anything to start playing music");
+    }
     for (let id of queue) {
         let musicData = musicLibary[id];
         let fileName = musicData.fileName;
         let file = await opfsRoot.getFileHandle(fileName);
         let url = URL.createObjectURL(await file.getFile());
+       // let picture = musicData.data.tags.picture.fileName;
+        //picture = await opfsRoot.getFileHandle(picture);
+        //picture = URL.createObjectURL(await picture.getFile());
+        //let img = new Image();
+        //img.src = picture;
+        //document.body.appendChild(img);
+
         audioObject = new Audio(url);
         audioObject.play();
         nowplaying.innerHTML = "Now playing...";
