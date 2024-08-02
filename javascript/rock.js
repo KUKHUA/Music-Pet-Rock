@@ -27,8 +27,16 @@ function updateQueue() {
         musicLibary = JSON.parse(localStorage.getItem("musicLibary"));
     } catch (error) {
         nowplaying.innerHTML = "Add some music by dragging and dropping some files on the rock!";
+        stopPlease = true;
         return;
     }
+
+    if(!musicLibary || Object.keys(musicLibary).length === 0) {
+        nowplaying.innerHTML = "Add some music by dragging and dropping some files on the rock!";
+        stopPlease = true;
+        return;
+    }
+    
     let keys = Object.keys(musicLibary);
     keys.sort(() => Math.random() - 0.5);
     queue = keys;
