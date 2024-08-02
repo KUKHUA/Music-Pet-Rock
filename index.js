@@ -76,6 +76,7 @@ window.addEventListener("DOMContentLoaded", () => {
     
                     musicLibary[id] = {
                         fileName: fileName,
+                        originalFileName: file.name,
                         fileType: file.type,
                         data: tag,
                     };
@@ -86,6 +87,7 @@ window.addEventListener("DOMContentLoaded", () => {
                     console.log(error);
                     musicLibary[id] = {
                         fileName: fileName,
+                        originalFileName: file.name,
                         fileType: file.type,
                         data: null,
                     };
