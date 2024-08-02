@@ -1,7 +1,14 @@
-
+window.stopPlease = true;
 window.addEventListener("DOMContentLoaded", () => {
     const body = document.querySelector('body');
     let rock = document.querySelector(".rock");
+
+    document.addEventListener('keydown', function(event) {
+        window.stopPlease = false;
+        document.getElementById('overlay').style.display = 'none';
+        window.startMusic();
+    });
+
     body.addEventListener('dragover', (event) => {
         event.preventDefault();
     });

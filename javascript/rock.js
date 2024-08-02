@@ -2,10 +2,9 @@ var queue = [];
 var musicLibary;
 var rockInterval;
 var audioObject;
-var stopPlease = false;
+var stopPlease = window.stopPlease;
 var rockimg,nowplaying,song;
 var pasuedMusic = false;
-var userText;
 var textLog; 
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -75,35 +74,74 @@ function pauseMusic() {
         pauseButton.innerHTML = '<span class="material-symbols-outlined">pause_circle</span>';
         audioObject.play();
         pasuedMusic = false;
-        textLog.innerHTML = `Paused music.`;
+        
         clearInterval(rockInterval);
     } else {
         pauseButton.innerHTML = '<span class="material-symbols-outlined">play_circle</span>';
         audioObject.pause();
         pasuedMusic = true;
-        textLog.innerHTML = `Resumed music.`;
+        
         startRotatingRock();
     }
 }
 
-async function startMusic() {
+window.startMusic = async function startMusic() {
     if (stopPlease) return;
     if (!queue.length) updateQueue();
     let opfsRoot = await navigator.storage.getDirectory();
-    if(!userText){
-        userText = prompt("Type anything to start playing music");
-    }
     for (let id of queue) {
         let musicData = musicLibary[id];
         let fileName = musicData.fileName;
         let file = await opfsRoot.getFileHandle(fileName);
         let url = URL.createObjectURL(await file.getFile());
-       // let picture = musicData.data.tags.picture.fileName;
-        //picture = await opfsRoot.getFileHandle(picture);
-        //picture = URL.createObjectURL(await picture.getFile());
-        //let img = new Image();
-        //img.src = picture;
-        //document.body.appendChild(img);
+        let picture = musicData.data.tags.picture.fileName;
+        picture = await opfsRoot.getFileHandle(picture);
+        picture = URL.createObjectURL(await picture.getFile());
+        //Make the image the same shape as the rock (mask)
+        let canvas = document.createElement("canvas");
+        canvas.width = 5000;
+        canvas.height = 5000;
+        let ctx = canvas.getContext("2d");
+
+        let rockImage = new Image();
+        let background = new Image();
+
+        rockImage.src = rockimg.src;
+        background.src = picture;
+                // Draw the background image
+                ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+        
+                // Create an off-screen canvas for the mask
+                let maskCanvas = document.createElement('canvas');
+                maskCanvas.width = canvas.width;
+                maskCanvas.height = canvas.height;
+                let maskCtx = maskCanvas.getContext('2d');
+        
+                // Draw the rock image on the mask canvas
+                maskCtx.drawImage(rockImage, 0, 0, canvas.width, canvas.height);
+        
+                // Get the pixel data from the mask canvas
+                let maskData = maskCtx.getImageData(0, 0, canvas.width, canvas.height);
+        
+                // Get the pixel data from the background image
+                let backgroundData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        
+                // Apply the mask to the background image
+                for (let i = 0; i < backgroundData.data.length; i += 4) {
+                    backgroundData.data[i + 3] = maskData.data[i + 3]; // Apply the alpha channel from the mask
+                }
+        
+                // Put the masked image back on the main canvas
+                ctx.putImageData(backgroundData, 0, 0);
+        
+                // Optionally, adjust the opacity of the rock image
+                ctx.globalAlpha = 0.5; // Adjust the opacity as needed (0.0 - 1.0)
+                ctx.drawImage(rockImage, 0, 0, canvas.width, canvas.height);
+                ctx.globalAlpha = 1.0; // Reset the global alpha to default
+        
+                // Set the resulting image as the source of another image element if needed
+                rockimg.src = canvas.toDataURL();
+
 
         audioObject = new Audio(url);
         audioObject.play();
