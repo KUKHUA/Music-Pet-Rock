@@ -44,7 +44,6 @@ function updateQueue() {
     keys.sort(() => Math.random() - 0.5);
     queue = keys;
     console.log("Music queue", queue);
-    startMusic();
 }
 
 function rotateRock() {
@@ -94,10 +93,17 @@ window.startMusic = async function startMusic() {
         let fileName = musicData.fileName;
         let file = await opfsRoot.getFileHandle(fileName);
         let url = URL.createObjectURL(await file.getFile());
-        let picture = musicData.data.tags.picture.fileName;
-        picture = await opfsRoot.getFileHandle(picture);
-        picture = URL.createObjectURL(await picture.getFile());
-        rockimg.src = picture;
+        try {
+            let picture = musicData.data.tags.picture.fileName;
+            picture = await opfsRoot.getFileHandle(picture);
+            picture = URL.createObjectURL(await picture.getFile());
+            document.getElementById("rock-container").style.backgroundImage = `url(${picture})`;
+            rockimg.style.opacity = '0.9';
+        } catch (error) {
+            document.getElementById("rock-container").style.backgroundImage = '';
+            rockimg.style.opacity = '1';
+        }
+
         audioObject = new Audio(url);
         audioObject.play();
         nowplaying.innerHTML = "Now playing...";

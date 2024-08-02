@@ -32,6 +32,7 @@ window.addEventListener("DOMContentLoaded", () => {
         for (const file of files) {
             await handleFile(file);
         }
+        stopMusic();
         updateQueue();
     });
 });
