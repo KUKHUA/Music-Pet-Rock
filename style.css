@@ -48,7 +48,7 @@ button:hover {
     margin: 10px;
 }
 
-.rock img {
+.rockimg {
     width: 30%;
     height: auto;
 }
@@ -58,3 +58,4 @@ button:hover {
     height: auto;
     transform: rotate(5deg)
 }
+
