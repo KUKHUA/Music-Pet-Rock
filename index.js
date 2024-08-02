@@ -1,8 +1,22 @@
 
 window.addEventListener("DOMContentLoaded", () => {
     const body = document.querySelector('body');
+    let rock = document.querySelector(".rock");
     body.addEventListener('dragover', (event) => {
         event.preventDefault();
+    });
+
+    rock.addEventListener('dragover', (event) => {
+        event.preventDefault();
+    });
+
+    rock.addEventListener("drop", async (event) => {
+        event.preventDefault();
+        const files = event.dataTransfer.files;
+        for (const file of files) {
+            await handleFile(file);
+        }
+        updateQueue();
     });
 
     body.addEventListener('drop', async (event) => {
