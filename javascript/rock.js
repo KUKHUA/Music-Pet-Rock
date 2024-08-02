@@ -97,47 +97,7 @@ window.startMusic = async function startMusic() {
         let picture = musicData.data.tags.picture.fileName;
         picture = await opfsRoot.getFileHandle(picture);
         picture = URL.createObjectURL(await picture.getFile());
-        //Make the image the same shape as the rock (mask)
-        let canvas = document.createElement("canvas");
-        canvas.width = 5000;
-        canvas.height = 5000;
-        let ctx = canvas.getContext("2d");
-
-        let rockImage = new Image();
-        let background = new Image();
-
-        rockImage.src = rockimg.src;
-        background.src = picture;
-// Draw the album art image
-ctx.drawImage(albumArt, 0, 0, canvas.width, canvas.height);
-
-// Create an off-screen canvas for the mask
-let maskCanvas = document.createElement('canvas');
-maskCanvas.width = canvas.width;
-maskCanvas.height = canvas.height;
-let maskCtx = maskCanvas.getContext('2d');
-
-// Draw the rock image on the mask canvas
-maskCtx.drawImage(rockImage, 0, 0, canvas.width, canvas.height);
-
-// Get the pixel data from the mask canvas
-let maskData = maskCtx.getImageData(0, 0, canvas.width, canvas.height);
-
-// Get the pixel data from the album art image
-let albumArtData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-// Apply the mask to the album art image
-for (let i = 0; i < albumArtData.data.length; i += 4) {
-    albumArtData.data[i + 3] = maskData.data[i + 3]; // Apply the alpha channel from the mask
-}
-
-// Put the masked image back on the main canvas
-ctx.putImageData(albumArtData, 0, 0);
-
-// Optionally, set the resulting image as the source of another image element if needed
-rockimg.src = canvas.toDataURL();
-
-
+        rockimg.src = picture;
         audioObject = new Audio(url);
         audioObject.play();
         nowplaying.innerHTML = "Now playing...";
