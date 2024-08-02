@@ -23,11 +23,12 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 function updateQueue() {
-    if(!musicLibary){
+    try {
+        musicLibary = JSON.parse(localStorage.getItem("musicLibary"));
+    } catch (error) {
         nowplaying.innerHTML = "Add some music by dragging and dropping some files on the rock!";
         return;
     }
-    musicLibary = JSON.parse(localStorage.getItem("musicLibary"));
     let keys = Object.keys(musicLibary);
     keys.sort(() => Math.random() - 0.5);
     queue = keys;
