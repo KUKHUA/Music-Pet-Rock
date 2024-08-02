@@ -108,39 +108,34 @@ window.startMusic = async function startMusic() {
 
         rockImage.src = rockimg.src;
         background.src = picture;
-                // Draw the background image
-                ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-        
-                // Create an off-screen canvas for the mask
-                let maskCanvas = document.createElement('canvas');
-                maskCanvas.width = canvas.width;
-                maskCanvas.height = canvas.height;
-                let maskCtx = maskCanvas.getContext('2d');
-        
-                // Draw the rock image on the mask canvas
-                maskCtx.drawImage(rockImage, 0, 0, canvas.width, canvas.height);
-        
-                // Get the pixel data from the mask canvas
-                let maskData = maskCtx.getImageData(0, 0, canvas.width, canvas.height);
-        
-                // Get the pixel data from the background image
-                let backgroundData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        
-                // Apply the mask to the background image
-                for (let i = 0; i < backgroundData.data.length; i += 4) {
-                    backgroundData.data[i + 3] = maskData.data[i + 3]; // Apply the alpha channel from the mask
-                }
-        
-                // Put the masked image back on the main canvas
-                ctx.putImageData(backgroundData, 0, 0);
-        
-                // Optionally, adjust the opacity of the rock image
-                ctx.globalAlpha = 0.5; // Adjust the opacity as needed (0.0 - 1.0)
-                ctx.drawImage(rockImage, 0, 0, canvas.width, canvas.height);
-                ctx.globalAlpha = 1.0; // Reset the global alpha to default
-        
-                // Set the resulting image as the source of another image element if needed
-                rockimg.src = canvas.toDataURL();
+// Draw the album art image
+ctx.drawImage(albumArt, 0, 0, canvas.width, canvas.height);
+
+// Create an off-screen canvas for the mask
+let maskCanvas = document.createElement('canvas');
+maskCanvas.width = canvas.width;
+maskCanvas.height = canvas.height;
+let maskCtx = maskCanvas.getContext('2d');
+
+// Draw the rock image on the mask canvas
+maskCtx.drawImage(rockImage, 0, 0, canvas.width, canvas.height);
+
+// Get the pixel data from the mask canvas
+let maskData = maskCtx.getImageData(0, 0, canvas.width, canvas.height);
+
+// Get the pixel data from the album art image
+let albumArtData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+// Apply the mask to the album art image
+for (let i = 0; i < albumArtData.data.length; i += 4) {
+    albumArtData.data[i + 3] = maskData.data[i + 3]; // Apply the alpha channel from the mask
+}
+
+// Put the masked image back on the main canvas
+ctx.putImageData(albumArtData, 0, 0);
+
+// Optionally, set the resulting image as the source of another image element if needed
+rockimg.src = canvas.toDataURL();
 
 
         audioObject = new Audio(url);
