@@ -53,12 +53,6 @@ button:hover {
     height: auto;
 }
 
-.rock img:hover {
-    width: 31%;
-    height: auto;
-    transform: rotate(5deg)
-}
-
 #overlay {
     position: fixed;
     top: 0;

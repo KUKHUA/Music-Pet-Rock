@@ -73,14 +73,12 @@ function pauseMusic() {
         pauseButton.innerHTML = '<span class="material-symbols-outlined">pause_circle</span>';
         audioObject.play();
         pasuedMusic = false;
-        
-        clearInterval(rockInterval);
+        startRotatingRock();
     } else {
         pauseButton.innerHTML = '<span class="material-symbols-outlined">play_circle</span>';
         audioObject.pause();
         pasuedMusic = true;
-        
-        startRotatingRock();
+        clearInterval(rockInterval);
     }
 }
 
