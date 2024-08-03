@@ -1,6 +1,6 @@
 var queue = [];
 var musicLibary;
-var rockInterval;
+var rockInterval = {}
 var audioObject;
 var stopPlease = window.stopPlease;
 var rockimg,nowplaying,song;
@@ -53,7 +53,8 @@ function rotateRock() {
 }
 
 function startRotatingRock() {
-    rockInterval = setInterval(rotateRock, 100);
+    let id = Math.random().toString(36).substring(7);
+    rockInterval.id = setInterval(rotateRock, 100);
 }
 
 function stopMusic() {
@@ -61,11 +62,9 @@ function stopMusic() {
     if (audioObject) {
         audioObject.pause();
     }
-    let audioElements = document.getElementsByTagName("audio");
-    for (let audio of audioElements) {
-        audio.pause();
+    for (objects in rockInterval) {
+        clearInterval(rockInterval[objects]);
     }
-    clearInterval(rockInterval);
     rockimg.style.transform = "";
     nowplaying.innerHTML = "Stopped";
     updateQueue();
@@ -85,10 +84,8 @@ function pauseMusic() {
         navigator.mediaSession.playbackState = "paused";
         pasuedMusic = true;
         try {
-            let pleaseStopTheRock = 0;
-            while(pleaseStopTheRock != 50){
-                pleaseStopTheRock +=1;
-                clearInterval(rockInterval)
+            for (objects in rockInterval) {
+                clearInterval(rockInterval[objects]);
             }
         } catch (error) {
             console.log("maybe failed to clear interval");
@@ -132,10 +129,6 @@ function setMediaSessionKeys(){
     navigator.mediaSession.setActionHandler("seekto", (details) => {
         audioObject.currentTime = details.seekTime;
     });
-
-    navigator.mediaSession.setActionHandler("skipad", () => {
-        audioObject.currentTime += 10;
-    });
 }
 
 window.startMusic = async function startMusic() {
@@ -154,42 +147,22 @@ window.startMusic = async function startMusic() {
         let file = await opfsRoot.getFileHandle(fileName);
         let url = URL.createObjectURL(await file.getFile());
         let picture;
-        let pictureSizes = [];
         let mediaSessionData = {
-            title: musicData.data.tags?.title || musicData.originalFileName || "this is old food for the rock",
-            artist: musicData.data.tags?.artist || "feed your rock!!",
-            album: musicData.data.tags?.album || "feed your rock.. please?",
-        }
+            title: musicData.data?.tags?.title || musicData.originalFileName || "this is old food for the rock",
+            artist: musicData.data?.tags?.artist || "feed your rock!!",
+            album: musicData.data?.tags?.album || "feed your rock.. please?",
+        };
         try {
             picture = musicData.data.tags.picture.fileName;
             picture = await opfsRoot.getFileHandle(picture);
             picture = URL.createObjectURL(await picture.getFile());
-            // Resize the picture to 96x96
-            let image = new Image();
-            image.src = picture;
-            await new Promise((resolve) => {
-                image.onload = resolve;
-            });
-            let canvas = document.createElement("canvas");
-            canvas.width = 96;
-            canvas.height = 96;
-            let ctx = canvas.getContext("2d");
-            ctx.drawImage(image, 0, 0, 96, 96);
-            pictureSizes.push(canvas.toDataURL("image/png"));
             document.getElementById("rock-container").style.backgroundImage = `url(${picture})`;
             rockimg.style.opacity = '0.9';
         } catch (error) {
             document.getElementById("rock-container").style.backgroundImage = '';
             rockimg.style.opacity = '1';
         }
-
-        if(pictureSizes.length > 0){
-            console.log("Picture sizes", pictureSizes);
-            mediaSessionData.artwork = pictureSizes.map((url) => {
-                return {src: url, sizes: "96x96", type: "image/png"};
-            });
-        }
-
+        
         audioObject = new Audio(url);
         audioObject.play();
         navigator.mediaSession.metadata = new MediaMetadata(mediaSessionData);
@@ -197,13 +170,15 @@ window.startMusic = async function startMusic() {
         setMediaSessionKeys();
 
         nowplaying.innerHTML = "Now playing...";
-        song.innerHTML = `${musicData.data.tags?.title || musicData.originalFileName || "Unknowed"} <i>By</i> ${musicData.data.tags?.artist || "you should feed your rock a diet of metadata"}`;
+        song.innerHTML = `${musicData.data?.tags?.title || musicData.originalFileName || "Unknowed"} <i>By</i> ${musicData.data?.tags?.artist || "you should feed your rock a diet of metadata"}`;
         startRotatingRock();
         await new Promise((resolve) => {
             audioObject.onended = resolve;
         });
         // Wait 500ms before playing the next song
         await new Promise((resolve) => setTimeout(resolve, 500));
-        clearInterval(rockInterval);
+            for (objects in rockInterval) {
+        clearInterval(rockInterval[objects]);
+    }
     }
 }
