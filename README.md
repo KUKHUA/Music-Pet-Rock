@@ -9,3 +9,7 @@ The website is available at: [https://kukhua.github.io/Music-Pet-Rock/](https://
 
 Here is a preview of the website:
 ![Rock Radio Preview](assets/preview.png)
+
+
+Rock Radio is built with the following libraries:
+- [JSmediatags](https://github.com/aadsm/jsmediatags) for extracting metadata from media files
