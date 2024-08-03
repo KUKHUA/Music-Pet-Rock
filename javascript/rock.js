@@ -61,6 +61,10 @@ function stopMusic() {
     if (audioObject) {
         audioObject.pause();
     }
+    let audioElements = document.getElementsByTagName("audio");
+    for (let audio of audioElements) {
+        audio.pause();
+    }
     clearInterval(rockInterval);
     rockimg.style.transform = "";
     nowplaying.innerHTML = "Stopped";
@@ -78,13 +82,27 @@ function pauseMusic() {
         pauseButton.innerHTML = '<span class="material-symbols-outlined">play_circle</span>';
         audioObject.pause();
         pasuedMusic = true;
-        clearInterval(rockInterval);
+        try {
+            let pleaseStopTheRock = 0;
+            while(pleaseStopTheRock != 50){
+                pleaseStopTheRock +=1;
+                clearInterval(rockInterval)
+            }
+        } catch (error) {
+            console.log("maybe failed to clear interval");
+        }
     }
 }
 
 window.startMusic = async function startMusic() {
     if (stopPlease) return;
     if (!queue.length) updateQueue();
+    if(audioObject) audioObject.pause();
+    // If any HTML audio is playing, stop it
+    let audioElements = document.getElementsByTagName("audio");
+    for (let audio of audioElements) {
+        audio.pause();
+    }
     let opfsRoot = await navigator.storage.getDirectory();
     for (let id of queue) {
         let musicData = musicLibary[id];
