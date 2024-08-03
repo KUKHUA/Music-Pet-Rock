@@ -105,7 +105,7 @@ window.startMusic = async function startMusic() {
         audioObject = new Audio(url);
         audioObject.play();
         nowplaying.innerHTML = "Now playing...";
-        song.innerHTML = `${musicData.data.tags.title || musicData.originalFileName || "Unknowed"} <i>By</i> ${musicData.data.tags.artist || "you should feed your rock a diet of metadata"}`;
+        song.innerHTML = `${musicData.data.tags?.title || musicData.originalFileName || "Unknowed"} <i>By</i> ${musicData.data.tags?.artist || "you should feed your rock a diet of metadata"}`;
         startRotatingRock();
         await new Promise((resolve) => {
             audioObject.onended = resolve;
