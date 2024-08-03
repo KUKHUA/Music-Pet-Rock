@@ -76,11 +76,13 @@ function pauseMusic() {
     if(pasuedMusic){
         pauseButton.innerHTML = '<span class="material-symbols-outlined">pause_circle</span>';
         audioObject.play();
+        navigator.mediaSession.playbackState = "playing";
         pasuedMusic = false;
         startRotatingRock();
     } else {
         pauseButton.innerHTML = '<span class="material-symbols-outlined">play_circle</span>';
         audioObject.pause();
+        navigator.mediaSession.playbackState = "paused";
         pasuedMusic = true;
         try {
             let pleaseStopTheRock = 0;
@@ -92,6 +94,48 @@ function pauseMusic() {
             console.log("maybe failed to clear interval");
         }
     }
+}
+
+function setMediaSessionKeys(){
+    navigator.mediaSession.setActionHandler("play", () => {
+        pauseMusic();
+    });
+
+    navigator.mediaSession.setActionHandler("pause", () => {
+        pauseMusic();
+    });
+
+    navigator.mediaSession.setActionHandler("nexttrack", () => {
+        stopMusic();
+        stopPlease = false;
+        startMusic();
+    });
+
+    navigator.mediaSession.setActionHandler("previoustrack", () => {
+        stopMusic();
+        stopPlease = false;
+        startMusic();
+    });
+
+    navigator.mediaSession.setActionHandler("stop", () => {
+        stopMusic();
+    });
+
+    navigator.mediaSession.setActionHandler("seekbackward", () => {
+        audioObject.currentTime -= 10;
+    });
+
+    navigator.mediaSession.setActionHandler("seekforward", () => {
+        audioObject.currentTime += 10;
+    });
+
+    navigator.mediaSession.setActionHandler("seekto", (details) => {
+        audioObject.currentTime = details.seekTime;
+    });
+
+    navigator.mediaSession.setActionHandler("skipad", () => {
+        audioObject.currentTime += 10;
+    });
 }
 
 window.startMusic = async function startMusic() {
@@ -109,10 +153,29 @@ window.startMusic = async function startMusic() {
         let fileName = musicData.fileName;
         let file = await opfsRoot.getFileHandle(fileName);
         let url = URL.createObjectURL(await file.getFile());
+        let picture;
+        let pictureSizes = [];
+        let mediaSessionData = {
+            title: musicData.data.tags?.title || musicData.originalFileName || "this is old food for the rock",
+            artist: musicData.data.tags?.artist || "feed your rock!!",
+            album: musicData.data.tags?.album || "feed your rock.. please?",
+        }
         try {
-            let picture = musicData.data.tags.picture.fileName;
+            picture = musicData.data.tags.picture.fileName;
             picture = await opfsRoot.getFileHandle(picture);
             picture = URL.createObjectURL(await picture.getFile());
+            // Resize the picture to 96x96
+            let image = new Image();
+            image.src = picture;
+            await new Promise((resolve) => {
+                image.onload = resolve;
+            });
+            let canvas = document.createElement("canvas");
+            canvas.width = 96;
+            canvas.height = 96;
+            let ctx = canvas.getContext("2d");
+            ctx.drawImage(image, 0, 0, 96, 96);
+            pictureSizes.push(canvas.toDataURL("image/png"));
             document.getElementById("rock-container").style.backgroundImage = `url(${picture})`;
             rockimg.style.opacity = '0.9';
         } catch (error) {
@@ -120,8 +183,19 @@ window.startMusic = async function startMusic() {
             rockimg.style.opacity = '1';
         }
 
+        if(pictureSizes.length > 0){
+            console.log("Picture sizes", pictureSizes);
+            mediaSessionData.artwork = pictureSizes.map((url) => {
+                return {src: url, sizes: "96x96", type: "image/png"};
+            });
+        }
+
         audioObject = new Audio(url);
         audioObject.play();
+        navigator.mediaSession.metadata = new MediaMetadata(mediaSessionData);
+        navigator.mediaSession.playbackState = "playing";
+        setMediaSessionKeys();
+
         nowplaying.innerHTML = "Now playing...";
         song.innerHTML = `${musicData.data.tags?.title || musicData.originalFileName || "Unknowed"} <i>By</i> ${musicData.data.tags?.artist || "you should feed your rock a diet of metadata"}`;
         startRotatingRock();
