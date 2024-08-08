@@ -135,6 +135,67 @@ function setMediaSessionKeys(){
     });
 }
 
+function rockSpeak(type, allowedTemplates){
+/*
+    type: string ex: "songChangeTemplate", "userSkipSongTemplate", or "userSkipSong"
+    allowedTemplates: JSON object ex: {songName: "Example Song Name", artistName: "Example Artist Name"}
+
+    stuff in window.rockLines can use are like this: 
+
+    userSkipSongTemplate: {
+        songName: [
+            "Not feeling [songName], huh?",
+        ],
+        
+        artistName: [
+            "Not feeling [artistName], huh?",
+        ],
+    }
+
+    you can use anything you want to put into the allowedTemplates object in the template.
+
+    Example:
+    rockSpeak("userSkipSongTemplate", {"songName": "Hello World", "artistName": "Hello World"});
+*/
+    if('speechSynthesis' in window) {
+        let vaildTemplate = {};
+        let choiceArray = [];
+        let text = "";
+
+        try {
+            vaildTemplate = rockLines[type];
+        } catch (error) {
+            return console.error("Invalid type");
+        }
+
+        if(allowedTemplates.songName && allowedTemplates.artistName) {
+            console.log("songName and artistName are detected, attempting to add songName_artistName template");
+            if(vaildTemplate.songName_artistName) {
+                choiceArray.push(...vaildTemplate.songName_artistName);
+            } else {
+                console.log("songName_artistName template not found");
+            }
+        }
+
+        for (let key in allowedTemplates) {
+            if(!vaildTemplate[key]) {
+                return console.error("Invalid key");
+            } else {
+                choiceArray.push(...vaildTemplate[key]);
+            }
+        }
+
+        let randomIndex = Math.floor(Math.random() * choiceArray.length);
+        text = choiceArray[randomIndex];
+
+        for (let key in allowedTemplates) {
+            text = text.replace(`[${key}]`, allowedTemplates[key]);
+        }
+
+        return text;
+    }
+}
+
 window.startMusic = async function startMusic() {
     if (stopPlease) return;
     if (!queue.length) updateQueue();
@@ -152,9 +213,9 @@ window.startMusic = async function startMusic() {
         let url = URL.createObjectURL(await file.getFile());
         let picture;
         let mediaSessionData = {
-            title: musicData.data?.tags?.title || musicData.originalFileName || "this is old food for the rock",
-            artist: musicData.data?.tags?.artist || "feed your rock!!",
-            album: musicData.data?.tags?.album || "feed your rock.. please?",
+            title: musicData.data?.tags?.title || musicData.originalFileName || "No Metadata",
+            artist: musicData.data?.tags?.artist || "",
+            album: musicData.data?.tags?.album || "",
         };
         try {
             picture = musicData.data.tags.picture.fileName;
@@ -166,17 +227,61 @@ window.startMusic = async function startMusic() {
             document.getElementById("rock-container").style.backgroundImage = '';
             rockimg.style.opacity = '1';
         }
-        
+
         audioObject = new Audio(url);
-        audioObject.play();
-        navigator.mediaSession.metadata = new MediaMetadata(mediaSessionData);
-        navigator.mediaSession.playbackState = "playing";
-        setMediaSessionKeys();
+        if('mediaSession' in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata(mediaSessionData);
+            navigator.mediaSession.playbackState = "playing";
+            setMediaSessionKeys();
+        }
+
+        if(musicData.data?.tags?.title.length > 35) {
+            // If the song name is too long, shorten it
+            musicData.data.tags.title = musicData.data.tags.title.substring(0, 35);
+        }
+
+        if(musicData.data?.tags?.artist.length > 35) {
+            // If the artist name is too long, shorten it
+            musicData.data.tags.artist = musicData.data.tags.artist.substring(0, 35);
+        }
+
+        if(musicData.data?.title.includes("(")) {
+            // If the song name contains parentheses, remove them and everything inside
+            musicData.data.title = musicData.data.title.replace(/\(.*\)/, "");
+        }
 
         nowplaying.innerHTML = "Now playing...";
         song.innerHTML = `${musicData.data?.tags?.title || musicData.originalFileName || "No Metadata"} <i>By</i> ${musicData.data?.tags?.artist || "No Metadata"}`;
-        
+
         startRotatingRock();
+
+        if ('speechSynthesis' in window) {
+            let speech = new SpeechSynthesisUtterance();
+            try {
+                speech.text = rockSpeak("songChangeTemplate", {"songName": mediaSessionData.title, "artistName": mediaSessionData.artist});
+                console.log(speech.text);
+            } catch (error) {
+                speech.text = `Now playing ${mediaSessionData.title} by ${mediaSessionData.artist}`;
+            }
+            window.speechSynthesis.speak(speech);
+            // Wait for the speech to start
+            await new Promise((resolve) => {
+                speech.onstart = resolve;
+            });
+            let loop = 0;
+            audioObject.volume = 0;
+            audioObject.play();
+            while(loop < 10){
+                loop++;
+                audioObject.volume = loop * 0.1;
+                console.log(audioObject.volume);
+                if(stopPlease) break;
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+            }
+        } else {
+            audioObject.play();
+        }
+
         await new Promise((resolve) => {
             audioObject.onended = resolve;
         });
