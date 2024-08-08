@@ -4,9 +4,15 @@ window.addEventListener("DOMContentLoaded", () => {
     let rock = document.querySelector(".rock");
 
     document.addEventListener('keydown', function(event) {
+        // If the space bar is pressed
+        if(event.key === " " && !event.repeat) {
         window.stopPlease = false;
         document.getElementById('overlay').style.display = 'none';
         window.startMusic();
+        } else {
+            event.preventDefault();
+            event.stopPropagation();
+        }
     });
 
     body.addEventListener('dragover', (event) => {

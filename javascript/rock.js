@@ -58,6 +58,10 @@ function startRotatingRock() {
 }
 
 function stopMusic() {
+    if(stopPlease){
+        pauseMusic();
+        return;
+    }
     stopPlease = true;
     if (audioObject) {
         audioObject.pause();
@@ -170,7 +174,8 @@ window.startMusic = async function startMusic() {
         setMediaSessionKeys();
 
         nowplaying.innerHTML = "Now playing...";
-        song.innerHTML = `${musicData.data?.tags?.title || musicData.originalFileName || "Unknowed"} <i>By</i> ${musicData.data?.tags?.artist || "you should feed your rock a diet of metadata"}`;
+        song.innerHTML = `${musicData.data?.tags?.title || musicData.originalFileName || "No Metadata"} <i>By</i> ${musicData.data?.tags?.artist || "No Metadata"}`;
+        
         startRotatingRock();
         await new Promise((resolve) => {
             audioObject.onended = resolve;
