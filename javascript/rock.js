@@ -15,12 +15,12 @@ window.addEventListener("DOMContentLoaded", () => {
     song = document.getElementById("song");
     textLog = document.getElementById("textLog");
     try {
-        speechSynthesisAllowed = speechSynthesis.getVoices();
-        // If it's a empty array, it's not allowed
-        if(speechSynthesisAllowed.length === 0) {
-            speechSynthesisAllowed = false;
-        } else {
-            speechSynthesisAllowed = true;
+        //Speak to check if the browser supports speech synthesis
+        let speech = new SpeechSynthesisUtterance();
+        speech.text = "Hello, I am the rock!";
+        window.speechSynthesis.speak(speech);
+        if(speech.text !== "Hello, I am the rock!") {
+            throw new Error("Speech synthesis failed");
         }
     } catch (error) {
         speechSynthesisAllowed = false;
