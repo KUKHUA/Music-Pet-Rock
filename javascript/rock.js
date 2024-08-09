@@ -235,19 +235,14 @@ window.startMusic = async function startMusic() {
             setMediaSessionKeys();
         }
 
-        if(musicData.data?.tags?.title.length > 35) {
+        if(musicData.data?.tags?.title?.length > 35) {
             // If the song name is too long, shorten it
             musicData.data.tags.title = musicData.data.tags.title.substring(0, 35);
         }
 
-        if(musicData.data?.tags?.artist.length > 35) {
+        if(musicData.data?.tags?.artist?.length > 35) {
             // If the artist name is too long, shorten it
             musicData.data.tags.artist = musicData.data.tags.artist.substring(0, 35);
-        }
-
-        if(musicData.data?.title.includes("(")) {
-            // If the song name contains parentheses, remove them and everything inside
-            musicData.data.title = musicData.data.title.replace(/\(.*\)/, "");
         }
 
         nowplaying.innerHTML = "Now playing...";
