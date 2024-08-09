@@ -64,7 +64,7 @@ window.addEventListener("DOMContentLoaded", () => {
                 onSuccess: function(tag) {
                     let picture = tag.tags?.picture;
                     if (picture) {
-                        // Decode the picture data as normal PNG data
+                        // Decode the picture data as normal data
                         picture.data = new Uint8Array(picture.data);
                         let blob = new Blob([picture.data], { type: picture.format });
                         let pictureFileName;
@@ -101,6 +101,28 @@ window.addEventListener("DOMContentLoaded", () => {
                 }
             });
             console.log(musicLibary);
+            //If its a lrc file
+        } else if(file.name.split('.').pop() == "lrc"){
+            console.log("LRC file detected",file.name);
+            let originalFileName = file.name.substring(0, file.name.lastIndexOf("."));
+            // Search the musicLibary for a matching file name
+            let id = Object.keys(musicLibary).find(key => musicLibary[key].originalFileName.substring(0,musicLibary[key].originalFileName.lastIndexOf(".")) == originalFileName) || null;
+            if(!id){
+                console.log("No matching music file found for LRC file. Please add the music file first.",id,originalFileName);
+                return;
+            }
+            let lrc = await file.text();
+            // Upload the LRC file to OPFS to not waste LocalStorage space
+            let lrcFileName = `${id}.lrc`;
+            try {
+                await makeFile(opfsRoot, lrcFileName, file.type, lrc);
+                console.log(`File ${lrcFileName} was successfully saved.`);
+                musicLibary[id].lrc = lrcFileName;
+                localStorage.setItem('musicLibary', JSON.stringify(musicLibary));
+            } catch (error) {
+                console.error("ERROR: Could not save LRC file. " + error);
+            }
+
         } else {
             console.log(`File ${file.name} is not an audio file. It is a ${file.type.split('/').pop()} file.`);
         }

@@ -1,5 +1,5 @@
 var queue = [];
-var musicLibary;
+var musicLibrary;
 var rockInterval = {}
 var audioObject;
 var stopPlease = window.stopPlease;
@@ -7,6 +7,7 @@ var rockimg,nowplaying,song;
 var pasuedMusic = false;
 var textLog; 
 var speechSynthesisAllowed;
+var nextLRCSync = {};
 
 window.addEventListener("DOMContentLoaded", () => {
     rockimg = document.querySelector(".rockimg");
@@ -28,6 +29,7 @@ window.addEventListener("DOMContentLoaded", () => {
         rockimg.addEventListener("click", () => {
             if (stopPlease) {
                 stopPlease = false;
+                cleanUp();
                 startMusic();
             } else {
                 stopMusic();
@@ -39,20 +41,20 @@ window.addEventListener("DOMContentLoaded", () => {
 
 function updateQueue() {
     try {
-        musicLibary = JSON.parse(localStorage.getItem("musicLibary"));
+        musicLibrary = JSON.parse(localStorage.getItem("musicLibary"));
     } catch (error) {
         nowplaying.innerHTML = "Add some music by dragging and dropping some files on the rock!";
         stopPlease = true;
         return;
     }
 
-    if(!musicLibary || Object.keys(musicLibary).length === 0) {
+    if(!musicLibrary || Object.keys(musicLibrary).length === 0) {
         nowplaying.innerHTML = "Add some music by dragging and dropping some files on the rock!";
         stopPlease = true;
         return;
     }
     
-    let keys = Object.keys(musicLibary);
+    let keys = Object.keys(musicLibrary);
     keys.sort(() => Math.random() - 0.5);
     queue = keys;
     console.log("Music queue", queue);
@@ -69,6 +71,64 @@ function startRotatingRock() {
     rockInterval.id = setInterval(rotateRock, 100);
 }
 
+function lrcDisplay(lyric,id){
+    if(stopPlease) return;
+    textLog.innerHTML = lyric;
+    console.log(lyric);
+}
+
+async function lrcSync(id) {
+    try {
+        const opfsRoot = await navigator.storage.getDirectory();
+        updateQueue();
+
+        if (!musicLibrary[id].lrc) {
+            console.log("No LRC file found");
+            return;
+        }
+
+        let lrcFileHandle = await opfsRoot.getFileHandle(musicLibrary[id].lrc);
+        let lrcFile = await lrcFileHandle.getFile();
+        let lrcText = await lrcFile.text();
+        let lines = lrcText.split("\n");
+
+        lines.forEach(line => {
+            let timeMatch = line.match(/\[\d{2}:\d{2}.\d{2}\]/g);
+            let lyric = line.replace(/\[\d{2}:\d{2}.\d{2}\]/g, "").trim();
+
+            if (timeMatch) {
+                let time = timeMatch[0].replace("[", "").replace("]", "");
+                let [minutes, seconds] = time.split(":").map(parseFloat);
+                time = (minutes * 60) + seconds;
+
+                if (audioObject.currentTime >= time) {
+                    lrcDisplay(lyric,id);
+                } else {
+                    let randomID = Math.random().toString(36).substring(7);
+                    let waitTime = time - audioObject.currentTime;
+                    nextLRCSync[randomID] = setTimeout(() => {
+                        lrcDisplay(lyric,id);
+                    }, 1000 * waitTime);
+                }
+            }
+        });
+    } catch (error) {
+        console.error("Failed to get LRC file", error);
+    }
+}
+
+function cleanUp(){
+    for(objects in rockInterval){
+        clearInterval(rockInterval[objects]);
+    }
+
+    for(objects in nextLRCSync){
+        clearTimeout(nextLRCSync[objects]);
+    }
+
+    lrcDisplay("",null)
+}
+
 function stopMusic() {
     if(stopPlease){
         pauseMusic();
@@ -78,9 +138,7 @@ function stopMusic() {
     if (audioObject) {
         audioObject.pause();
     }
-    for (objects in rockInterval) {
-        clearInterval(rockInterval[objects]);
-    }
+    cleanUp();
     rockimg.style.transform = "";
     nowplaying.innerHTML = "Stopped";
     updateQueue();
@@ -90,10 +148,14 @@ function pauseMusic() {
     let pauseButton = document.getElementById("pause");
     if(pasuedMusic){
         pauseButton.innerHTML = '<span class="material-symbols-outlined">pause_circle</span>';
+        if(audioObject){
         audioObject.play();
+        }
         navigator.mediaSession.playbackState = "playing";
         pasuedMusic = false;
+        cleanUp();
         startRotatingRock();
+        lrcSync(queue[0]);
     } else {
         pauseButton.innerHTML = '<span class="material-symbols-outlined">play_circle</span>';
         if(audioObject){
@@ -101,13 +163,7 @@ function pauseMusic() {
         }
         navigator.mediaSession.playbackState = "paused";
         pasuedMusic = true;
-        try {
-            for (objects in rockInterval) {
-                clearInterval(rockInterval[objects]);
-            }
-        } catch (error) {
-            console.log("maybe failed to clear interval");
-        }
+        cleanUp();
     }
 }
 
@@ -134,18 +190,6 @@ function setMediaSessionKeys(){
 
     navigator.mediaSession.setActionHandler("stop", () => {
         stopMusic();
-    });
-
-    navigator.mediaSession.setActionHandler("seekbackward", () => {
-        audioObject.currentTime -= 10;
-    });
-
-    navigator.mediaSession.setActionHandler("seekforward", () => {
-        audioObject.currentTime += 10;
-    });
-
-    navigator.mediaSession.setActionHandler("seekto", (details) => {
-        audioObject.currentTime = details.seekTime;
     });
 }
 
@@ -221,7 +265,7 @@ window.startMusic = async function startMusic() {
     }
     let opfsRoot = await navigator.storage.getDirectory();
     for (let id of queue) {
-        let musicData = musicLibary[id];
+        let musicData = musicLibrary[id];
         let fileName = musicData.fileName;
         let file = await opfsRoot.getFileHandle(fileName);
         let url = URL.createObjectURL(await file.getFile());
@@ -291,13 +335,13 @@ window.startMusic = async function startMusic() {
             audioObject.play();
         }
 
+        lrcSync(id);
+
         await new Promise((resolve) => {
             audioObject.onended = resolve;
         });
         // Wait 500ms before playing the next song
         await new Promise((resolve) => setTimeout(resolve, 500));
-            for (objects in rockInterval) {
-        clearInterval(rockInterval[objects]);
-    }
+        cleanUp();
     }
 }

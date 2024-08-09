@@ -53,6 +53,15 @@ button:hover {
     height: auto;
 }
 
+.controls {
+    display: flex;
+    /* show it in a rectangle like controls */
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin: 10px;
+}
+
 #overlay {
     position: fixed;
     top: 0;
@@ -66,4 +75,16 @@ button:hover {
     align-items: center;
     font-size: 24px;
     z-index: 9999;
-  }
+}
+
+#textLog {
+    color: white; 
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); 
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 10px; 
+    border-radius: 10px;
+    text-align: center; 
+    z-index: 1000;
+}
+
+

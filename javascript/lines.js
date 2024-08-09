@@ -20,6 +20,14 @@ window.rockLines = {
         ]
     },
 
+    songChange: [
+        "You all know this one!",
+        "Let's rock out!",
+        "Let's keep the party going!",
+        "This one's a classic!",
+        "Next up!",
+    ],
+
     userSkipSong: [
         "Not feeling this one, huh?",
         "You don't like this one?",
@@ -32,8 +40,6 @@ window.rockLines = {
         songName: [
             "Not feeling [songName], huh?",
             "You don't like [songName]?",
-            "Let's move on.",
-            "Next!",
             "Let's skip [songName].",
             "Is [songName] not your jam?",
         ],
@@ -41,8 +47,6 @@ window.rockLines = {
         artistName: [
             "Not feeling [artistName], huh?",
             "You don't like [artistName]?",
-            "Let's move on.",
-            "Next!",
             "Let's skip [artistName].",
             "Is [artistName] not your jam?",
         ],
