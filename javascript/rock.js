@@ -308,6 +308,7 @@ window.startMusic = async function startMusic() {
 
         startRotatingRock();
 
+        let lrcSyncStarted = false;
         if ('speechSynthesis' in window && speechSynthesisAllowed) {
             let speech = new SpeechSynthesisUtterance();
             try {
@@ -323,6 +324,8 @@ window.startMusic = async function startMusic() {
             });
             let loop = 0;
             audioObject.volume = 0;
+            lrcSyncStarted = true;
+            lrcSync(id);
             audioObject.play();
             while(loop < 10){
                 loop++;
@@ -335,7 +338,9 @@ window.startMusic = async function startMusic() {
             audioObject.play();
         }
 
-        lrcSync(id);
+        if(!lrcSyncStarted) {
+            lrcSync(id);
+        }
 
         await new Promise((resolve) => {
             audioObject.onended = resolve;
