@@ -6,14 +6,24 @@ var stopPlease = window.stopPlease;
 var rockimg,nowplaying,song;
 var pasuedMusic = false;
 var textLog; 
-var speech;
+var speechSynthesisAllowed;
 
 window.addEventListener("DOMContentLoaded", () => {
     rockimg = document.querySelector(".rockimg");
     nowplaying = document.getElementById("nowplaying");
     song = document.getElementById("song");
     textLog = document.getElementById("textLog");
-    speech = new SpeechSynthesisUtterance();
+    try {
+        speechSynthesisAllowed = speechSynthesis.getVoices();
+        // If it's a empty array, it's not allowed
+        if(speechSynthesisAllowed.length === 0) {
+            speechSynthesisAllowed = false;
+        } else {
+            speechSynthesisAllowed = true;
+        }
+    } catch (error) {
+        speechSynthesisAllowed = false;
+    }
     if (rockimg) {
         rockimg.addEventListener("click", () => {
             if (stopPlease) {
@@ -71,9 +81,6 @@ function stopMusic() {
     for (objects in rockInterval) {
         clearInterval(rockInterval[objects]);
     }
-    if(speechSynthesis.speaking) {
-        speechSynthesis.cancel();
-    }
     rockimg.style.transform = "";
     nowplaying.innerHTML = "Stopped";
     updateQueue();
@@ -89,7 +96,9 @@ function pauseMusic() {
         startRotatingRock();
     } else {
         pauseButton.innerHTML = '<span class="material-symbols-outlined">play_circle</span>';
+        if(audioObject){
         audioObject.pause();
+        }
         navigator.mediaSession.playbackState = "paused";
         pasuedMusic = true;
         try {
@@ -240,12 +249,12 @@ window.startMusic = async function startMusic() {
             setMediaSessionKeys();
         }
 
-        if(musicData.data?.tags?.title?.length > 35) {
+        if(musicData.data?.tags?.title.length > 35) {
             // If the song name is too long, shorten it
             musicData.data.tags.title = musicData.data.tags.title.substring(0, 35);
         }
 
-        if(musicData.data?.tags?.artist?.length > 35) {
+        if(musicData.data?.tags?.artist.length > 35) {
             // If the artist name is too long, shorten it
             musicData.data.tags.artist = musicData.data.tags.artist.substring(0, 35);
         }
@@ -255,7 +264,8 @@ window.startMusic = async function startMusic() {
 
         startRotatingRock();
 
-        if ('speechSynthesis' in window) {
+        if ('speechSynthesis' in window && speechSynthesisAllowed) {
+            let speech = new SpeechSynthesisUtterance();
             try {
                 speech.text = rockSpeak("songChangeTemplate", {"songName": mediaSessionData.title, "artistName": mediaSessionData.artist});
                 console.log(speech.text);
