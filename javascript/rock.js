@@ -6,12 +6,14 @@ var stopPlease = window.stopPlease;
 var rockimg,nowplaying,song;
 var pasuedMusic = false;
 var textLog; 
+var speech;
 
 window.addEventListener("DOMContentLoaded", () => {
     rockimg = document.querySelector(".rockimg");
     nowplaying = document.getElementById("nowplaying");
     song = document.getElementById("song");
     textLog = document.getElementById("textLog");
+    speech = new SpeechSynthesisUtterance();
     if (rockimg) {
         rockimg.addEventListener("click", () => {
             if (stopPlease) {
@@ -68,6 +70,9 @@ function stopMusic() {
     }
     for (objects in rockInterval) {
         clearInterval(rockInterval[objects]);
+    }
+    if(speechSynthesis.speaking) {
+        speechSynthesis.cancel();
     }
     rockimg.style.transform = "";
     nowplaying.innerHTML = "Stopped";
@@ -251,7 +256,6 @@ window.startMusic = async function startMusic() {
         startRotatingRock();
 
         if ('speechSynthesis' in window) {
-            let speech = new SpeechSynthesisUtterance();
             try {
                 speech.text = rockSpeak("songChangeTemplate", {"songName": mediaSessionData.title, "artistName": mediaSessionData.artist});
                 console.log(speech.text);
