@@ -76,7 +76,11 @@ function changeColorFromLocal() {
 
 async function userSkipSong() {
     let speech = new SpeechSynthesisUtterance();
-    speech.text = rockSpeak("userSkipSongTemplate", {songName: currentSongData.title, artistName: currentSongData.artist});
+    if(currentSongData){
+        speech.text = rockSpeak("userSkipSongTemplate", {songName: currentSongData.title, artistName: currentSongData.artist});
+    } else {
+        speech.text = "Skipping to the next song";
+    }
     console.log(speech.text);
     window.speechSynthesis.speak(speech);
     // Wait for speech to finish async
