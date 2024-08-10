@@ -8,36 +8,97 @@ var pasuedMusic = false;
 var textLog; 
 var speechSynthesisAllowed;
 var nextLRCSync = {};
+var currentSongData = {};
+var rockHidden = false;
 
 window.addEventListener("DOMContentLoaded", () => {
     rockimg = document.querySelector(".rockimg");
     nowplaying = document.getElementById("nowplaying");
     song = document.getElementById("song");
     textLog = document.getElementById("textLog");
-    try {
-        //Speak to check if the browser supports speech synthesis
-        let speech = new SpeechSynthesisUtterance();
-        speech.text = "Hello, I am the rock!";
-        window.speechSynthesis.speak(speech);
-        if(speech.text !== "Hello, I am the rock!") {
-            throw new Error("Speech synthesis failed");
-        }
-    } catch (error) {
-        speechSynthesisAllowed = false;
-    }
+    checkifSpeechSynthesisAllowed();
     if (rockimg) {
         rockimg.addEventListener("click", () => {
             if (stopPlease) {
                 stopPlease = false;
                 cleanUp();
-                startMusic();
+                if(speechSynthesisAllowed && currentSongData) {
+                    userSkipSong();
+                } else {
+                    startMusic();
+                }
             } else {
                 stopMusic();
             }
         });
     }
+    changeColorFromLocal();
     updateQueue();
 });
+
+function hideRock() {
+    let rockButton = document.getElementById("hideRock");
+    if(rockHidden) {
+        rockimg.style.opacity = '0.9';
+        rockButton.innerHTML = '<span class="material-symbols-outlined">visibility_off</span>';
+        rockHidden = false;
+        if(currentSongData && !stopPlease) {
+           startRotatingRock();
+        }
+    } else {
+        rockimg.style.opacity = '0';
+        rockButton.innerHTML = '<span class="material-symbols-outlined">visibility</span>';
+        rockHidden = true;
+        for(objects in rockInterval){
+            clearInterval(rockInterval[objects]);
+        }
+    }
+}
+
+function changeColorScheme() {
+    let currentColorScheme = document.documentElement.getAttribute("data-theme");
+    if(currentColorScheme === "dark") {
+        document.documentElement.setAttribute("data-theme", "white");
+        localStorage.setItem("colorScheme", "light");
+    } else {
+        document.documentElement.setAttribute("data-theme", "dark");
+        localStorage.setItem("colorScheme", "dark");
+    }
+}
+
+function changeColorFromLocal() {
+    if(localStorage.getItem("colorScheme") === "light") {
+        document.documentElement.setAttribute("data-theme", "white");
+    } else {
+        document.documentElement.setAttribute("data-theme", "dark");
+    }
+}
+
+async function userSkipSong() {
+    let speech = new SpeechSynthesisUtterance();
+    speech.text = rockSpeak("userSkipSongTemplate", {songName: currentSongData.title, artistName: currentSongData.artist});
+    console.log(speech.text);
+    window.speechSynthesis.speak(speech);
+    // Wait for speech to finish async
+    await new Promise((resolve) => {
+        speech.onend = resolve;
+    });
+    startMusic();
+}
+
+
+async function checkifSpeechSynthesisAllowed(){
+    try {
+        let speech = new SpeechSynthesisUtterance();
+        speech.text = "Hello, I am the rock!";
+        window.speechSynthesis.speak(speech);
+        if(speechSynthesis.speaking){
+            speechSynthesisAllowed = true;
+        }
+    } catch (error) {
+        console.log("Speech synthesis is not allowed");
+    }
+}
 
 function updateQueue() {
     try {
@@ -67,12 +128,23 @@ function rotateRock() {
 }
 
 function startRotatingRock() {
+    if(rockHidden){
+        rockimg.style.opacity = '0';
+        return;
+    }
+    if(rockHidden) return;
     let id = Math.random().toString(36).substring(7);
-    rockInterval.id = setInterval(rotateRock, 100);
+    rockInterval[id] = setInterval(rotateRock, 100);
 }
 
 function lrcDisplay(lyric,id){
     if(stopPlease) return;
+    if(!lyric){
+        textLog.style.display = "none";
+    } else {
+        textLog.style.display = "block";
+    }
+
     textLog.innerHTML = lyric;
     console.log(lyric);
 }
@@ -125,7 +197,7 @@ function cleanUp(){
     for(objects in nextLRCSync){
         clearTimeout(nextLRCSync[objects]);
     }
-
+    currentSongData = {};
     lrcDisplay("",null)
 }
 
@@ -307,6 +379,7 @@ window.startMusic = async function startMusic() {
         song.innerHTML = `${musicData.data?.tags?.title || musicData.originalFileName || "No Metadata"} <i>By</i> ${musicData.data?.tags?.artist || "No Metadata"}`;
 
         startRotatingRock();
+        currentSongData = musicData.data.tags;
 
         let lrcSyncStarted = false;
         if ('speechSynthesis' in window && speechSynthesisAllowed) {
@@ -317,21 +390,18 @@ window.startMusic = async function startMusic() {
             } catch (error) {
                 speech.text = `Now playing ${mediaSessionData.title} by ${mediaSessionData.artist}`;
             }
-            window.speechSynthesis.speak(speech);
-            // Wait for the speech to start
-            await new Promise((resolve) => {
-                speech.onstart = resolve;
-            });
             let loop = 0;
+            let stopLoop = false;
             audioObject.volume = 0;
             lrcSyncStarted = true;
             lrcSync(id);
             audioObject.play();
-            while(loop < 10){
+            window.speechSynthesis.speak(speech);
+            while(loop < 5 && !stopLoop){
+                if(stopPlease) stopLoop = true;
                 loop++;
-                audioObject.volume = loop * 0.1;
+                audioObject.volume = loop * 0.2;
                 console.log(audioObject.volume);
-                if(stopPlease) break;
                 await new Promise((resolve) => setTimeout(resolve, 1000));
             }
         } else {
