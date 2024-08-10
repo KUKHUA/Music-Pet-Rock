@@ -78,12 +78,10 @@ async function userSkipSong() {
     // Wait 500ms before speaking
     //extarct info from song html
     // this is not good practice but it works
-    let songInfo = song.innerHTML.split("<i>By</i>");
-    let songName = songInfo[0].trim();
-    let artistName = songInfo[1].trim();
+    let songinfo = song.innerHTML.split("<i>By</i>")
     
-    if(songInfo && songName && artistName) {
-        speech.text = rockSpeak("userSkipSongTemplate", {songName: songName, artistName: artistName});
+    if(songinfo && songinfo[0] && songinfo[1]){
+        speech.text = rockSpeak("userSkipSongTemplate", {songName: songinfo[0], artistName: songinfo[1]});
     } else {
         speech.text = "Skipping to the next song";
     }
