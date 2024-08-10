@@ -8,7 +8,6 @@ var pasuedMusic = false;
 var textLog; 
 var speechSynthesisAllowed;
 var nextLRCSync = {};
-var currentSongData = {};
 var rockHidden = false;
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -22,7 +21,7 @@ window.addEventListener("DOMContentLoaded", () => {
             if (stopPlease) {
                 stopPlease = false;
                 cleanUp();
-                if(speechSynthesisAllowed && currentSongData) {
+                if(speechSynthesisAllowed) {
                     userSkipSong();
                 } else {
                     startMusic();
@@ -42,7 +41,7 @@ function hideRock() {
         rockimg.style.opacity = '0.9';
         rockButton.innerHTML = '<span class="material-symbols-outlined">visibility_off</span>';
         rockHidden = false;
-        if(currentSongData && !stopPlease) {
+        if(!stopPlease) {
            startRotatingRock();
         }
     } else {
@@ -77,9 +76,14 @@ function changeColorFromLocal() {
 async function userSkipSong() {
     let speech = new SpeechSynthesisUtterance();
     // Wait 500ms before speaking
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    if(currentSongData && currentSongData.title && currentSongData.artist) {
-        speech.text = rockSpeak("userSkipSongTemplate", {songName: currentSongData.title, artistName: currentSongData.artist});
+    //extarct info from song html
+    // this is not good practice but it works
+    let songInfo = song.innerHTML.split("<i>By</i>");
+    let songName = songInfo[0].trim();
+    let artistName = songInfo[1].trim();
+    
+    if(songInfo && songName && artistName) {
+        speech.text = rockSpeak("userSkipSongTemplate", {songName: songName, artistName: artistName});
     } else {
         speech.text = "Skipping to the next song";
     }
@@ -203,7 +207,7 @@ function cleanUp(){
     for(objects in nextLRCSync){
         clearTimeout(nextLRCSync[objects]);
     }
-    currentSongData = {};
+    currentSongData = null;
     lrcDisplay("",null)
 }
 
