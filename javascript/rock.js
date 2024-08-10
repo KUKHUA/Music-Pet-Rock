@@ -76,6 +76,8 @@ function changeColorFromLocal() {
 
 async function userSkipSong() {
     let speech = new SpeechSynthesisUtterance();
+    // Wait 500ms before speaking
+    await new Promise((resolve) => setTimeout(resolve, 500));
     if(currentSongData && currentSongData.title && currentSongData.artist) {
         speech.text = rockSpeak("userSkipSongTemplate", {songName: currentSongData.title, artistName: currentSongData.artist});
     } else {
