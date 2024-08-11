@@ -6,7 +6,7 @@ var stopPlease = window.stopPlease;
 var rockimg,nowplaying,song;
 var pasuedMusic = false;
 var textLog; 
-var speechSynthesisAllowed;
+var speechSynthesisAllowed = false;
 var nextLRCSync = {};
 var rockHidden = false;
 
@@ -15,7 +15,6 @@ window.addEventListener("DOMContentLoaded", () => {
     nowplaying = document.getElementById("nowplaying");
     song = document.getElementById("song");
     textLog = document.getElementById("textLog");
-    checkifSpeechSynthesisAllowed();
     if (rockimg) {
         rockimg.addEventListener("click", () => {
             if (stopPlease) {
@@ -92,20 +91,6 @@ async function userSkipSong() {
         speech.onend = resolve;
     });
     startMusic();
-}
-
-
-async function checkifSpeechSynthesisAllowed(){
-    try {
-        let speech = new SpeechSynthesisUtterance();
-        speech.text = "Hello, I am the rock!";
-        window.speechSynthesis.speak(speech);
-        if(speechSynthesis.speaking){
-            speechSynthesisAllowed = true;
-        }
-    } catch (error) {
-        console.log("Speech synthesis is not allowed");
-    }
 }
 
 function updateQueue() {
