@@ -1,13 +1,58 @@
 window.stopPlease = true;
+window.currentList = "list1";
 window.addEventListener("DOMContentLoaded", () => {
     const body = document.querySelector('body');
     let rock = document.querySelector(".rock");
+    const selectList = document.getElementById('selectList');
+    var musicLibary = {};
+    
+    if (localStorage.getItem('musicLibary') === null) {
+        localStorage.setItem('musicLibary', JSON.stringify({list1: {}}));
+        musicLibary = JSON.parse(localStorage.getItem('musicLibary'));
+    } else {
+        musicLibary = JSON.parse(localStorage.getItem('musicLibary'));
+    }
+
+    if(!musicLibary.list1){
+        // Automatically create a playlist if it doesn't exist
+        musicLibary.list1 = musicLibary;
+    }
+
+    for(let key in musicLibary){
+        if(key.startsWith("list")){
+            let option = document.createElement("option");
+            option.value = key;
+            option.text = key;
+            selectList.add(option);
+            // Add an event listener to the select list
+            option.addEventListener('click', function(event) {
+                window.currentList = key;
+                updateQueue();
+            });
+        }
+    }
+    // Add an add option to the select list
+    let option = document.createElement("option");
+    option.value = "add";
+    option.text = "Add New List";
+    selectList.add(option);
+    // Add an event listener to the select list
+    option.addEventListener('click', function(event) {
+        // Automatically create a playlist name
+        let listName = "list" + (Object.keys(musicLibary).length + 1);
+        if(listName){
+            window.currentList = listName;
+            musicLibary[listName] = {};
+            updateQueue();
+        }
+    });
 
     document.addEventListener('keydown', function(event) {
         // If the space bar is pressed
         if(event.key === " " && !event.repeat) {
         window.stopPlease = false;
-        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('overlay').style.opacity = 0;
+        document.getElementById('overlay').style.pointerEvents = "none";
         window.startMusic();
         } else {
             event.preventDefault();
@@ -80,7 +125,7 @@ window.addEventListener("DOMContentLoaded", () => {
                         tag.tags.picture.data = null;
                     }
     
-                    musicLibary[id] = {
+                    musicLibary[window.currentList][id] = {
                         fileName: fileName,
                         originalFileName: file.name,
                         fileType: file.type,
@@ -91,7 +136,7 @@ window.addEventListener("DOMContentLoaded", () => {
                 },
                 onError: function(error) {
                     console.log(error);
-                    musicLibary[id] = {
+                    musicLibary[window.currentList][id] = {
                         fileName: fileName,
                         originalFileName: file.name,
                         fileType: file.type,
@@ -106,7 +151,7 @@ window.addEventListener("DOMContentLoaded", () => {
             console.log("LRC file detected",file.name);
             let originalFileName = file.name.substring(0, file.name.lastIndexOf("."));
             // Search the musicLibary for a matching file name
-            let id = Object.keys(musicLibary).find(key => musicLibary[key].originalFileName.substring(0,musicLibary[key].originalFileName.lastIndexOf(".")) == originalFileName) || null;
+            let id = Object.keys(musicLibary[window.currentList]).find(key => musicLibary[window.currentList][key].originalFileName.substring(0,musicLibary[window.currentList][key].originalFileName.lastIndexOf(".")) == originalFileName) || null;
             if(!id){
                 console.log("No matching music file found for LRC file. Please add the music file first.",id,originalFileName);
                 return;
@@ -117,7 +162,7 @@ window.addEventListener("DOMContentLoaded", () => {
             try {
                 await makeFile(opfsRoot, lrcFileName, file.type, lrc);
                 console.log(`File ${lrcFileName} was successfully saved.`);
-                musicLibary[id].lrc = lrcFileName;
+                musicLibary[window.currentList][id].lrc = lrcFileName;
                 localStorage.setItem('musicLibary', JSON.stringify(musicLibary));
             } catch (error) {
                 console.error("ERROR: Could not save LRC file. " + error);

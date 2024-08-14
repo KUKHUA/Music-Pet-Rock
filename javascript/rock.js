@@ -107,8 +107,46 @@ function updateQueue() {
         stopPlease = true;
         return;
     }
+    // Remove all options from the select list
+    let selectList = document.getElementById("selectList");
+    selectList.innerHTML = "";
+    for(let key in musicLibrary){
+        if(key.startsWith("list")){
+            let option = document.createElement("option");
+            option.value = key;
+            option.text = key;
+            selectList.add(option);
+            // Add an event listener to the select list
+            option.addEventListener('click', function(event) {
+                window.currentList = key;
+                updateQueue();
+                cleanUp();
+                startMusic();
+            });
+        }
+    }
+
+    let option = document.createElement("option");
+    option.value = "add";
+    option.text = "Add New List";
+    selectList.add(option);
+    // Add an event listener to the select list
+    option.addEventListener('click', function(event) {
+        // Automatically create a playlist name
+        let listName = "list" + parseInt((Object.keys(musicLibrary).length + 1));
+        if(listName){
+            musicLibrary[listName] = {};
+            localStorage.setItem("musicLibary", JSON.stringify(musicLibrary));
+            updateQueue();
+            stopMusic();
+            cleanUp();
+        }
+    });
     
-    let keys = Object.keys(musicLibrary);
+    //Change the selected option to the current list
+    selectList.value = window.currentList;
+
+    let keys = Object.keys(musicLibrary[window.currentList]);
     keys.sort(() => Math.random() - 0.5);
     queue = keys;
     console.log("Music queue", queue);
@@ -147,12 +185,12 @@ async function lrcSync(id) {
         const opfsRoot = await navigator.storage.getDirectory();
         updateQueue();
 
-        if (!musicLibrary[id].lrc) {
+        if (!musicLibrary[window.currentList][id].lrc) {
             console.log("No LRC file found");
             return;
         }
 
-        let lrcFileHandle = await opfsRoot.getFileHandle(musicLibrary[id].lrc);
+        let lrcFileHandle = await opfsRoot.getFileHandle(musicLibrary[window.currentList][id].lrc);
         let lrcFile = await lrcFileHandle.getFile();
         let lrcText = await lrcFile.text();
         let lines = lrcText.split("\n");
@@ -330,7 +368,7 @@ window.startMusic = async function startMusic() {
     }
     let opfsRoot = await navigator.storage.getDirectory();
     for (let id of queue) {
-        let musicData = musicLibrary[id];
+        let musicData = musicLibrary[window.currentList][id];
         let fileName = musicData.fileName;
         let file = await opfsRoot.getFileHandle(fileName);
         let url = URL.createObjectURL(await file.getFile());
@@ -403,7 +441,9 @@ window.startMusic = async function startMusic() {
 
         if(!lrcSyncStarted) {
             lrcSync(id);
-        }
+        }  
+
+        document.title = `${mediaSessionData.title} | Rock Radio`;
 
         await new Promise((resolve) => {
             audioObject.onended = resolve;

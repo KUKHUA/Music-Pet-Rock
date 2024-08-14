@@ -26,6 +26,7 @@ body {
     display: flex;
     align-items: center;
     flex-direction: column;
+    transition: background-color 0.5s, color 0.5s;
 }
 
 input {
@@ -39,11 +40,13 @@ input {
     border: none;
     outline: none;
     font-size: medium;
+    transition: background-color 0.5s, border 0.5s;
 }
 
 input:focus {
     background-color: var(--color-input-focus);
     border: none;
+    transition: background-color 0.5s, border 0.5s;
 }
 
 button {
@@ -55,10 +58,34 @@ button {
     border-radius: 5px;
     padding: 10px;
     margin: 5px;
+    transition: background-color 0.5s, transform 0.5s;
 }
 
 button:hover {
     background-color: var(--color-btn-hover);
+    transform: scale(1.1);
+    transition: 0.5s;
+}
+
+select {
+    font-family: 'Source Code Pro', monospace;
+    font-weight: 500;
+    background-color: var(--color-input);
+    color: var(--color-fg);
+    border-radius: 5px;
+    margin: 5px;
+    padding: 5px;
+    border: none;
+    outline: none;
+    font-size: medium;
+    transition: background-color 0.5s, transform 0.5s, border 0.5s;
+}
+
+select:hover {
+    background-color: var(--color-input-focus);
+    transform: scale(1.1);
+    transition: 0.5s;
+    border: none;
 }
 
 .rock {
@@ -95,6 +122,8 @@ button:hover {
     align-items: center;
     font-size: 24px;
     z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.5s;
 }
 
 #textLog {
@@ -106,4 +135,11 @@ button:hover {
     border-radius: 10px;
     text-align: center; 
     z-index: 1000;
+    transition: transform 0.5s, font-weight 0.5s;
+}
+
+#textLog:hover {
+    transform: scale(1.5);
+    font-weight: bold; 
+    transition: 0.5s;
 }
