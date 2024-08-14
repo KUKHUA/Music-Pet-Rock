@@ -433,7 +433,12 @@ window.startMusic = async function startMusic() {
                 loop++;
                 audioObject.volume = loop * 0.2;
                 console.log(audioObject.volume);
-                await new Promise((resolve) => setTimeout(resolve, 1000));
+                if(window.speechSynthesis.speaking){
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
+                    // Push back the loop if the speech is still speaking
+                    loop--;
+                    audioObject.volume =- loop * 0.2;
+                }
             }
         } else {
             audioObject.play();
