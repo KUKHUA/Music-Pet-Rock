@@ -124,7 +124,7 @@ function updateQueue() {
         // Automatically create a playlist name
         let listName = "list" + (Object.keys(musicLibrary).length + 1);
         if(listName){
-            musicLibary[listName] = {};
+            musicLibrary[listName] = {};
             updateQueue();
             }
         }
