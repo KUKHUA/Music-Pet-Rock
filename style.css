@@ -136,6 +136,9 @@ select:hover {
     text-align: center; 
     z-index: 1000;
     transition: transform 0.5s, font-weight 0.5s;
+    max-width: 45vw;
+    height: auto;
+    word-break: break-word;
 }
 
 #textLog:hover {
