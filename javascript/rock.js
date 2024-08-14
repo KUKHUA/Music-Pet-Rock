@@ -106,9 +106,7 @@ function updateQueue() {
                // Add an event listener to the select list
                option.addEventListener('click', function(event) {
                    window.currentList = key;
-                   if(!musicLibrary[key]){
-                        musicLibrary[key] = {};
-                        localStorage.setItem("musicLibary", JSON.stringify(musicLibrary));
+                   if(!musicLibrary[key] || Object.keys(musicLibrary[key]).length === 0){
                        nowplaying.innerHTML = "Add some music by dragging and dropping some files on the rock!";
                        stopPlease = true;
                        return;
@@ -132,8 +130,9 @@ function updateQueue() {
         let listName = "list" + (Object.keys(musicLibrary).length + 1);
         if(listName){
             musicLibrary[listName] = {};
+            localStorage.setItem('musicLibary', JSON.stringify(musicLibrary));
             updateQueue();
-            }
+        }
         }
     });
        

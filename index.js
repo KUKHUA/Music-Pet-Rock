@@ -54,8 +54,9 @@ window.addEventListener("DOMContentLoaded", () => {
         let listName = "list" + (Object.keys(musicLibary).length + 1);
         if(listName){
             musicLibary[listName] = {};
+            localStorage.setItem('musicLibary', JSON.stringify(musicLibary));
             updateQueue();
-            }
+        }
         }
     });
 
