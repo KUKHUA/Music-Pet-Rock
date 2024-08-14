@@ -9,6 +9,16 @@ window.addEventListener("DOMContentLoaded", () => {
     if (localStorage.getItem('musicLibary') === null) {
         localStorage.setItem('musicLibary', JSON.stringify({list1: {}}));
         musicLibary = JSON.parse(localStorage.getItem('musicLibary'));
+        // Upload default music files from assets/default_music, 1.mp3, 2.mp3 and 3.mp3
+        fetch("assets/default_music/1.mp3").then(response => response.blob()).then(blob => {
+            handleFile(new File([blob], "1.mp3", { type: "audio/mpeg" }));
+        });
+        fetch("assets/default_music/2.mp3").then(response => response.blob()).then(blob => {
+            handleFile(new File([blob], "2.mp3", { type: "audio/mpeg" }));
+        });
+        fetch("assets/default_music/3.mp3").then(response => response.blob()).then(blob => {
+            handleFile(new File([blob], "3.mp3", { type: "audio/mpeg" }));
+        });
     } else {
         musicLibary = JSON.parse(localStorage.getItem('musicLibary'));
     }
@@ -37,13 +47,16 @@ window.addEventListener("DOMContentLoaded", () => {
     option.text = "Add New List";
     selectList.add(option);
     // Add an event listener to the select list
-    option.addEventListener('click', function(event) {
+    selectList.addEventListener('change', function(event) {
+        //If the user selects the add option
+        if(event.target.value = "add"){
         // Automatically create a playlist name
         let listName = "list" + (Object.keys(musicLibary).length + 1);
         if(listName){
             window.currentList = listName;
             musicLibary[listName] = {};
             updateQueue();
+            }
         }
     });
 
