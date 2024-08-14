@@ -106,7 +106,9 @@ function updateQueue() {
                // Add an event listener to the select list
                option.addEventListener('click', function(event) {
                    window.currentList = key;
-                   if(musicLibrary[key].length === 0){
+                   if(!musicLibrary[key]){
+                        musicLibrary[key] = {};
+                        localStorage.setItem("musicLibary", JSON.stringify(musicLibrary));
                        nowplaying.innerHTML = "Add some music by dragging and dropping some files on the rock!";
                        stopPlease = true;
                        return;
