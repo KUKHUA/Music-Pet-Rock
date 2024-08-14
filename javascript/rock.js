@@ -107,6 +107,13 @@ function updateQueue() {
         stopPlease = true;
         return;
     }
+    if(!musicLibrary[window.currentList]){
+        // tell the user to upload some music
+        nowplaying.innerHTML = "Add some music by dragging and dropping some files on the rock!";
+        stopMusic();
+        stopPlease = true;
+        return;
+    }
     // Remove all options from the select list
     let selectList = document.getElementById("selectList");
     selectList.innerHTML = "";
