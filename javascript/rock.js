@@ -94,50 +94,6 @@ async function userSkipSong() {
 }
 
 function updateQueue() {
-       // Remove all options from the select list
-       let selectList = document.getElementById("selectList");
-       selectList.innerHTML = "";
-       for(let key in musicLibrary){
-           if(key.startsWith("list")){
-               let option = document.createElement("option");
-               option.value = key;
-               option.text = key;
-               selectList.add(option);
-               // Add an event listener to the select list
-               option.addEventListener('click', function(event) {
-                   window.currentList = key;
-                   if(!musicLibrary[key] || Object.keys(musicLibrary[key]).length === 0){
-                       nowplaying.innerHTML = "Add some music by dragging and dropping some files on the rock!";
-                       stopPlease = true;
-                       return;
-                   }
-                   updateQueue();
-                   cleanUp();
-                   startMusic();
-               });
-           }
-       }
-   
-       let option = document.createElement("option");
-       option.value = "add";
-       option.text = "Add New List";
-       selectList.add(option);
-       // Add an event listener to the select list
-       selectList.addEventListener('change', function(event) {
-        //If the user selects the add option
-        if(event.target.value = "add"){
-        // Automatically create a playlist name
-        let listName = "list" + (Object.keys(musicLibrary).length + 1);
-        if(listName){
-            musicLibrary[listName] = {};
-            localStorage.setItem('musicLibary', JSON.stringify(musicLibrary));
-            updateQueue();
-        }
-        }
-    });
-       
-       //Change the selected option to the current list
-       selectList.value = window.currentList;
     try {
         musicLibrary = JSON.parse(localStorage.getItem("musicLibary"));
     } catch (error) {
@@ -151,14 +107,44 @@ function updateQueue() {
         stopPlease = true;
         return;
     }
-    if(!musicLibrary[window.currentList]){
-        // tell the user to upload some music
-        cleanUp();
-        stopMusic();
-        nowplaying.innerHTML = "Add some music by dragging and dropping some files on the rock!";
-        stopPlease = true;
-        return;
+    // Remove all options from the select list
+    let selectList = document.getElementById("selectList");
+    selectList.innerHTML = "";
+    for(let key in musicLibrary){
+        if(key.startsWith("list")){
+            let option = document.createElement("option");
+            option.value = key;
+            option.text = key;
+            selectList.add(option);
+            // Add an event listener to the select list
+            option.addEventListener('click', function(event) {
+                window.currentList = key;
+                updateQueue();
+                cleanUp();
+                startMusic();
+            });
+        }
     }
+
+    let option = document.createElement("option");
+    option.value = "add";
+    option.text = "Add New List";
+    selectList.add(option);
+    // Add an event listener to the select list
+    option.addEventListener('click', function(event) {
+        // Automatically create a playlist name
+        let listName = "list" + parseInt((Object.keys(musicLibrary).length + 1));
+        if(listName){
+            musicLibrary[listName] = {};
+            localStorage.setItem("musicLibary", JSON.stringify(musicLibrary));
+            updateQueue();
+            stopMusic();
+            cleanUp();
+        }
+    });
+    
+    //Change the selected option to the current list
+    selectList.value = window.currentList;
 
     let keys = Object.keys(musicLibrary[window.currentList]);
     keys.sort(() => Math.random() - 0.5);

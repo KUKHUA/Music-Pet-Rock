@@ -41,8 +41,8 @@ window.addEventListener("DOMContentLoaded", () => {
         // Automatically create a playlist name
         let listName = "list" + (Object.keys(musicLibary).length + 1);
         if(listName){
+            window.currentList = listName;
             musicLibary[listName] = {};
-            localStorage.setItem('musicLibary', JSON.stringify(musicLibary));
             updateQueue();
         }
     });
